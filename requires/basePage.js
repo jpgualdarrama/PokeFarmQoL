@@ -1,3 +1,7 @@
+// ==UserScript==
+// @version      1.0
+// ==/UserScript==
+
 class Page {
     SETTINGS_SAVE_KEY() { return this.settingsSaveKey }
     DEFAULT_SETTINGS() { return this.defaultSettings }
