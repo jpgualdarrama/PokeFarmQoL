@@ -384,9 +384,17 @@
         // this will update the GLOBALS.EVOLVE_BY_LEVEL_LIST
         // and local storage
         DexUtilities.loadDexPage().then((data) => {
-            let html = jQuery.parseHTML(data)
-            let dex = $(html[10].querySelector('#dexdata')).html()
-            const dexNumbers = DexUtilities.parseAndStoreDexNumbers(dex);
+            // load current list of processed dex IDs
+            let dexIDsCache = DexUtilities.loadLocalStorageDexIDsCache();
+            
+            // get the list of new dex numbers from the pokefarm.com/dex page
+            let html = jQuery.parseHTML(data);
+            let dex = $(html[10].querySelector('#dexdata')).html();
+            const dexNumbers = DexUtilities.parseNewDexNumbers(dex, dexIDsCache);
+            
+            // Add the list of dexNumbers to the cache and write it back to local storage
+            dexIDsCache = dexIDsCache.concat(dexNumbers)
+            DexUtilities.updateLocalStorageDexIDsCache(dexIDsCache);
 
             if(dexNumbers.length > 0) {
                 // update the progress bar in the hub
