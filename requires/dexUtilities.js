@@ -57,14 +57,17 @@ class DexUtilities {
         localStorage.setItem('QoLPokedex', JSON.stringify(datePlusDex))
         $('.qolDate').val(dateString)
     }
-    static parseAndStoreDexNumbers(dex) {
-        let json = JSON.parse(dex)
-        // load current list of processed dex IDs
-        let dexIDsCache = []
+    static loadLocalStorageDexIDsCache() {
         if(localStorage.getItem('QoLDexIDsCache') !== null) {
-            dexIDsCache = JSON.parse(localStorage.getItem('QoLDexIDsCache'))
+            return JSON.parse(localStorage.getItem('QoLDexIDsCache'));
         }
-        
+        return undefined;
+    }
+    static updateLocalStorageDexIDsCache(ids) {
+        localStorage.setItem('QoLDexIDsCache', JSON.stringify(ids));
+    }
+    static parseNewDexNumbers(dex, dexIDsCache) {
+        let json = JSON.parse(dex)
         let dexNumbers = [];
         // get the list of pokedex numbers that haven't been processed before
         for(let r in json.regions) {
@@ -75,9 +78,6 @@ class DexUtilities {
             }
         }
         
-        // Add the list of dexNumbers to the cache and write it back to local storage
-        dexIDsCache = dexIDsCache.concat(dexNumbers)
-        localStorage.setItem('QoLDexIDsCache', JSON.stringify(dexIDsCache))
         return dexNumbers;
     }
     static parseEvolutionLi(li, dex_id_map) {
