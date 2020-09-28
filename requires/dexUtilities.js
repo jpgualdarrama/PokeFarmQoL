@@ -66,7 +66,7 @@ class DexUtilities {
     static updateLocalStorageDexIDsCache(ids) {
         localStorage.setItem('QoLDexIDsCache', JSON.stringify(ids));
     }
-    static parseNewDexNumbers(dex, dexIDsCache) {
+    static parseNewDexNumbers(dex, dexIDsCache = []) {
         let json = JSON.parse(dex)
         let dexNumbers = [];
         // get the list of pokedex numbers that haven't been processed before
@@ -586,12 +586,9 @@ class DexUtilities {
         }
     }
 
-    static saveEvolveByLevelList(parsed_families, dex_ids) {
+    static updateEvolveByLevelList(parsed_families, dex_ids) {
         // load current evolve by level list
-        let evolveByLevelList = {}
-        if(localStorage.getItem('QoLEvolveByLevel') !== null) {
-            evolveByLevelList = JSON.parse(localStorage.getItem('QoLEvolveByLevel'))
-        }
+        let evolveByLevelList = DexUtilities.getEvolveByLevelList();
 
         for(let pokemon in parsed_families) {
             let evolutions = parsed_families[pokemon]
@@ -609,15 +606,32 @@ class DexUtilities {
             } // for
         } // for pokemon
 
-        GLOBALS.EVOLVE_BY_LEVEL_LIST = evolveByLevelList
-        localStorage.setItem('QoLEvolveByLevel', JSON.stringify(evolveByLevelList))
-    } // saveEvolveByLevelList
+        DexUtilities.saveEvolveByLevelList(evolveByLevelList);
+    }
 
-    static saveEvolutionTreeDepths(parsed_families, dex_ids, form_data, form_map) {
+    static getEvolveByLevelList() {
+        return JSON.parse(localStorage.getItem('QoLEvolveByLevel') || "{}");
+    }
+
+    static saveEvolveByLevelList(evolveByLevelList) {
+        GLOBALS.EVOLVE_BY_LEVEL_LIST = evolveByLevelList;
+        localStorage.setItem('QoLEvolveByLevel', JSON.stringify(evolveByLevelList));
+    } // buildEvolveByLevelList
+
+    static getEvolutionTreeDepths() {
+        return JSON.parse(localStorage.getItem('QoLEvolutionTreeDepth') || "{}");
+    }
+
+    static saveEvolutionTreeDepths(evolutionTreeDepths) {
+        localStorage.setItem("QoLEvolutionTreeDepth", JSON.stringify(evolutionTreeDepths));
+        GLOBALS.EVOLUTIONS_LEFT = evolutionTreeDepths;
+    }
+
+    static updateEvolutionTreeDepths(parsed_families, dex_ids, form_data, form_map) {
         // store the maximum depth of the evolution tree for each pokemon
         // for highlighting each pokemon based on how fully evolved they are
         // https://github.com/jpgualdarrama/PokeFarmQoL/issues/11
-        let maxEvoTreeDepth = {}
+        let maxEvoTreeDepth = DexUtilities.getEvolutionTreeDepths();
         for(let pokemon in parsed_families) {
             let evolutions = parsed_families[pokemon]
 
@@ -737,24 +751,45 @@ class DexUtilities {
             } // if not in maxEvoTreeDepth
         } // for pokemon in parsed_families
 
-        localStorage.setItem("QoLEvolutionTreeDepth", JSON.stringify(maxEvoTreeDepth));
-        GLOBALS.EVOLUTIONS_LEFT = maxEvoTreeDepth;
+        DexUtilities.saveEvolutionTreeDepths(maxEvoTreeDepth);
 
-    } // saveEvolutionTreeDepths
+    } // updateEvolutionTreeDepths
 
-    static saveRegionalFormsList(parsed_families, dex_ids, regional_form_map) {
+    static getRegionalFormsList() {
+        return JSON.parse(localStorage.getItem('QoLRegionalFormsList') || "{}");
+    }
+
+    static saveRegionalFormsList(regionalFormsList) {
+        localStorage.setItem('QoLRegionalFormsList', JSON.stringify(regionalFormsList));
+        GLOBALS.REGIONAL_FORMS_LIST = regionalFormsList;
+    }
+
+    static updateRegionalFormsList(parsed_families, dex_ids, regional_form_map) {
         // GLOBALS.REGIONAL_FORMS_LIST maps base pokemon species names to the list
         // of regional forms, including the base name.
         // e.g. - GLOBALS.REGIONAL_FORMS_LIST[Rattata] = ["Rattata", "Rattata [Alolan Forme]"]
-        const key = 'QoLRegionalFormsList';
-        const list = regional_form_map;
+        let list = DexUtilities.getRegionalFormsList();
 
-        localStorage.setItem(key, JSON.stringify(list));
-        GLOBALS.REGIONAL_FORMS_LIST = list;
+        for(let pokemon in regional_form_map) {
+            if(!(pokemon in list)) {
+                list[pokemon] = regional_form_map[pokemon];
+            }
+        }
 
-    } // saveRegionalFormsList
+        DexUtilities.saveRegionalFormsList(list);
 
-    static saveEggTypesMap(map) {
+    } // updateRegionalFormsList
+
+    static saveEggTypesMap(eggTypesMap) {
+        localStorage.setItem('QoLEggTypesMap', JSON.stringify(eggTypesMap));
+        GLOBALS.EGGS_PNG_TO_TYPES_LIST = eggTypesMap;
+    }
+
+    static getEggTypesMap() {
+        return JSON.parse(localStorage.getItem('QoLEggTypesMap') || "{}");
+    }
+
+    static updateEggTypesMap(map) {
         // GLOBALS.EGGS_PNG_TO_TYPES_LIST will map a pokemon's base name to all the egg pngs that
         // will appear in the shelter with that name, and map each of those pngs to the type(s)
         // of that egg
@@ -762,9 +797,15 @@ class DexUtilities {
         //           <kantonian.png> : [Normal],
         //           <alolan.png> : [Normal, Dark]
         // }
-        const key = 'QoLEggTypesMap';
-        localStorage.setItem(key, JSON.stringify(map));
-        GLOBALS.EGGS_PNG_TO_TYPES_LIST = map;
-    }
+        let eggTypesMap = DexUtilities.getEggTypesMap();
+
+        for(let pokemon in map) {
+            if(!(pokemon in eggTypesMap)) {
+                eggTypesMap[pokemon] = map[pokemon];
+            }
+        }
+
+        DexUtilities.saveEggTypesMap(eggTypesMap);
+    } // updateEggTypesMap
 
 } // DexUtilities
