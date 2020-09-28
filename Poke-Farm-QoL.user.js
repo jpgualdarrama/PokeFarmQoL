@@ -384,18 +384,11 @@
         // this will update the GLOBALS.EVOLVE_BY_LEVEL_LIST
         // and local storage
         DexUtilities.loadDexPage().then((data) => {
-            // load current list of processed dex IDs
-            let dexIDsCache = DexUtilities.loadLocalStorageDexIDsCache();
-            
             // get the list of new dex numbers from the pokefarm.com/dex page
             let html = jQuery.parseHTML(data);
             let dex = $(html[10].querySelector('#dexdata')).html();
-            const dexNumbers = DexUtilities.parseNewDexNumbers(dex, dexIDsCache);
+            const dexNumbers = DexUtilities.parseNewDexNumbers(dex, DexUtilities.loadLocalStorageDexIDsCache());
             
-            // Add the list of dexNumbers to the cache and write it back to local storage
-            dexIDsCache = dexIDsCache.concat(dexNumbers)
-            DexUtilities.updateLocalStorageDexIDsCache(dexIDsCache);
-
             if(dexNumbers.length > 0) {
                 // update the progress bar in the hub
                 const limit = dexNumbers.length
@@ -412,7 +405,6 @@
                         // Issue #61 - Item 2
                         // Wrap the code in a try/catch/finally to be able to let the user know when an error occurs
                         try {
-                            progressSpan.textContent = "Processing loaded data...";
                             // Combine the arrays of HTML into one array
                             let allPagesHTML = dexPagesHTML.concat(formPagesHTML);
 
@@ -437,10 +429,17 @@
                             const types    = DexUtilities.parseTypesList(allPagesHTML);
                             const egg_pngs_types_map = DexUtilities.buildEggPngsTypesMap(base_names, egg_pngs, types);
 
-                            DexUtilities.saveEvolveByLevelList(parsed_families, dex_ids)
-                            DexUtilities.saveEvolutionTreeDepths(parsed_families, dex_ids, form_data, form_map);
-                            DexUtilities.saveRegionalFormsList(parsed_families, dex_ids, regional_form_map);
-                            DexUtilities.saveEggTypesMap(egg_pngs_types_map);
+                            DexUtilities.updateEvolveByLevelList(parsed_families, dex_ids)
+                            DexUtilities.updateEvolutionTreeDepths(parsed_families, dex_ids, form_data, form_map);
+                            DexUtilities.updateRegionalFormsList(parsed_families, dex_ids, regional_form_map);
+                            DexUtilities.updateEggTypesMap(egg_pngs_types_map);
+
+                            // Issue #61 - Item 5
+                            // Update dexIDsCache with newly loaded dex and form pages
+                            // Doing this last in case any errors occur
+                            DexUtilities.updateLocalStorageDexIDsCache(
+                                allPagesHTML.map((h) => { return DexUtilities.getInfoFromDexPageFooter(h).shortlink_number }));
+
                             progressSpan.textContent = "Complete!";
         
                         } catch(err) {
@@ -476,6 +475,7 @@
         localStorage.removeItem('QoLDexIDsCache');
         localStorage.removeItem("QoLEvolutionTreeDepth");
         localStorage.removeItem('QoLRegionalFormsList');
+        localStorage.removeItem('QoLEggTypesMap');
         $('#clearCachedDex').after('<span> Cleared!</span>');
     }));
 
