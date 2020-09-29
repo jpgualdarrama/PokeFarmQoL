@@ -350,7 +350,7 @@
         // this handler updates the local storage
         const progressSpan = $('span.qolDexUpdateProgress')[0]
         progressSpan.textContent = "Loading..."
-        
+
         // Issue #61 - Item 4 - Tell user that the Update Pokedex script isn't done until they see "Complete"
         // Disable button until done
         const button = $('#updateDex');
@@ -359,7 +359,7 @@
         const td = $(progressSpan).parent();
         const waitMsgSpan = $('<span>Please wait for the text next to the progress bar to say <b>"Complete!"</b> before closing or refreshing this page. This may take several minutes');
         td.prepend(waitMsgSpan);
-        
+
         const cleanupAfterDexPageProcessing = function(errorMessage) {
             // Issue #61 - Item 4 - Tell user that the Update Pokedex script isn't done until they see "Complete"
             // Re-enable button
@@ -375,7 +375,7 @@
                       "Error message:\n" +
                       errorMessage);
         }
-        
+
         let date = (new Date()).toUTCString();
         GLOBALS.DEX_UPDATE_DATE = date;
         $('.qolDate').text(GLOBALS.DEX_UPDATE_DATE);
@@ -388,7 +388,7 @@
             let html = jQuery.parseHTML(data);
             let dex = $(html[10].querySelector('#dexdata')).html();
             const dexNumbers = DexUtilities.parseNewDexNumbers(dex, DexUtilities.loadLocalStorageDexIDsCache());
-            
+
             if(dexNumbers.length > 0) {
                 // update the progress bar in the hub
                 const limit = dexNumbers.length
@@ -441,7 +441,7 @@
                                 allPagesHTML.map((h) => { return DexUtilities.getInfoFromDexPageFooter(h).shortlink_number }));
 
                             progressSpan.textContent = "Complete!";
-        
+
                         } catch(err) {
                             errorMessage = err.message;
                         } finally {
