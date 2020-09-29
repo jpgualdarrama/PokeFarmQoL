@@ -58,13 +58,15 @@ class DexUtilities {
         $('.qolDate').val(dateString)
     }
     static loadLocalStorageDexIDsCache() {
-        if(localStorage.getItem('QoLDexIDsCache') !== null) {
-            return JSON.parse(localStorage.getItem('QoLDexIDsCache'));
-        }
-        return undefined;
+        return JSON.parse(localStorage.getItem('QoLDexIDsCache') || "[]");
+    }
+    static saveDexIDsCache(ids) {
+        localStorage.setItem('QoLDexIDsCache', JSON.stringify(ids));
     }
     static updateLocalStorageDexIDsCache(ids) {
-        localStorage.setItem('QoLDexIDsCache', JSON.stringify(ids));
+        let dexIDsCache = DexUtilities.loadLocalStorageDexIDsCache();
+        let newCache = dexIDsCache.concat(ids);
+        DexUtilities.saveDexIDsCache(newCache);
     }
     static parseNewDexNumbers(dex, dexIDsCache = []) {
         let json = JSON.parse(dex)
@@ -77,7 +79,7 @@ class DexUtilities {
                 }
             }
         }
-        
+
         return dexNumbers;
     }
     static parseEvolutionLi(li, dex_id_map) {
@@ -638,15 +640,22 @@ class DexUtilities {
             // filter out "evolutions" that are really changes between forms of the
             // same pokemon
             for(let i = evolutions.length - 1; i>= 0; i--) {
+                // Issue #61 - Item 5
+                // If the evolution is not in the form_map, it isn't an error, because
+                // the list of new pokemon could be incomplete if only some pokemon
+                // are being loaded
+                /*
                 if(form_map[evolutions[i].source] === undefined) {
                     console.error(`Could not find form data for ${evolutions[i].source}`);
                 } else {
                     if(form_map[evolutions[i].target] === undefined) {
                         console.error(`Could not find form data for ${evolutions[i].target}`);
-                    } else if(form_map[evolutions[i].source] === form_map[evolutions[i].target]) {
+                    } else */
+                    if(form_map[evolutions[i].source] !== undefined &&
+                       form_map[evolutions[i].source] === form_map[evolutions[i].target]) {
                         evolutions.splice(i, 1);
                     }
-                }
+                /* } */
             }
 
             if(!(pokemon in maxEvoTreeDepth)) {
