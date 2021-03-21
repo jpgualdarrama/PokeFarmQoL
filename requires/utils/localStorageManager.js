@@ -145,6 +145,12 @@ class LocalStorageManager {
         globals.EGGS_PNG_TO_TYPES_LIST = map;
     }
 
+    savePokemonTypesMap(globals, map) {
+        const key = 'QoLPokemonTypesMap';
+        self.storage.setItem(key, JSON.stringify(map));
+        globals.POKEMON_PNG_TO_TYPES_LIST = map;
+    }
+
     /* parseAndStoreDexNumbers
      * 
      */
