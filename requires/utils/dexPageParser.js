@@ -108,6 +108,21 @@ class DexPageParser {
         return eggUrl;
     }
 
+    /* Parse the normal pokemon png link from dex page
+     * Inputs:
+     * - html - HTML of a full dex page (from https://www.pokefarm.com/dex/<id>)
+     * Outputs:
+     * - pokemonUrl - Partial URL to the png of the pokemon's normal sprite.
+     *                'https://pfq-static.com/img/' is removed from the URL since it is always the same
+     */
+    static parsePokemonNormalPngFromDexPage(html) {
+        let pokemonUrl = (html.find('.spritelist>.plateform>.pokemon').eq(0)
+                          .attr('style') || '')
+                          .replace(`background-image:url('https://pfq-static.com/img/`, '')
+                          .replace(`')`, '');
+        return pokemonUrl;
+    }
+
     /* Parse the evolution tree from a dex page
      * Inputs:
      * - html - HTML of a full dex page (from https://www.pokefarm.com/dex/<id>)
