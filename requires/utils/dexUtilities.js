@@ -349,6 +349,26 @@ class DexUtilities {
         return list;
     }
 
+    /* mon_pngs = {
+       'Rattata' : ' ... .png',
+       'Rattata [Alolan Forme]' : '... .png'
+       }
+    */
+    static parsePokemonNormalPngsList($, ownerDocument, dexPageParser, args) {
+        const list = {};
+        for(let a = 0; a < args.length; a++) {
+            let data = $(args[a], ownerDocument);
+            const headerInfo = dexPageParser.getInfoFromDexPageHeader(data);
+            const name = headerInfo.name;
+            const pokemonUrl = dexPageParser.parsePokemonNormalPngFromDexPage(data);
+
+            if(pokemonUrl) {
+                list[name] = pokemonUrl;
+            }
+        }
+        return list;
+    }
+
     /* types = {
        'Rattata' : [Normal],
        'Raticate' : [Normal],
@@ -424,6 +444,25 @@ class DexUtilities {
         for(let name in eggPngsList) {
             const base = baseNamesList[name];
             const png = eggPngsList[name];
+            const types = typesList[name];
+            (map[base] = map[base] || {})[png] = types;
+        }
+
+        return map;
+    }
+
+    /* pokemon_pngs_types_map = {
+       'Rattata': {
+             <kantonian.png> : [Normal],
+             <alolan.png> : [Normal, Dark],
+          }
+       }
+    */
+    static buildPokemonNormalPngsTypeMap(baseNamesList, monsPngsList, typesList) {
+        const map = {};
+        for(let name in monsPngsList, typesList) {
+            const base = baseNamesList[name];
+            const png = monsPngsList[name];
             const types = typesList[name];
             (map[base] = map[base] || {})[png] = types;
         }
