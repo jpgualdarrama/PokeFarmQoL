@@ -524,6 +524,8 @@ class ShelterPage extends ShelterBase {
         if (filteredTypeArray.length > 0) {
             const eggPngsToTypes = GLOBALS.EGGS_PNG_TO_TYPES_LIST ||
                   JSON.parse(localStorage.getItem('QoLEggTypesMap')) || undefined;
+            const monPngsToTypes = GLOBALS.POKEMON_PNG_TO_TYPES_LIST ||
+                  JSON.parse(localStorage.getItem('QoLPokemonTypesMap')) || undefined;
             for (let i = 0; i < filteredTypeArray.length; i++) {
                 let value = filteredTypeArray[i];
                 let foundType = GLOBALS.SHELTER_TYPE_TABLE[GLOBALS.SHELTER_TYPE_TABLE.indexOf(value) + 2];
@@ -571,9 +573,21 @@ class ShelterPage extends ShelterBase {
                     selected = this.jQuery('#shelterarea>.tooltip_content').not(':contains("Egg")');
                     selected.each(function() {
                         let searchPokemon = (obj.jQuery(this).text().split(' ')[0]);
-                        let searchPokemonIndex = dexData.indexOf('"'+searchPokemon+'"');
-                        let searchTypeOne = dexData[searchPokemonIndex + 1];
-                        let searchTypeTwo = dexData[searchPokemonIndex + 2];
+                        let searchTypeOne = '';
+                        let searchTypeTwo = '';
+                        if(monPngsToTypes) {
+                            let imgUrl = obj.jQuery(obj.jQuery(this).prev().find('img')[0]).attr('src').replace('https://pfq-static.com/img/', '');
+                            searchTypeOne = monPngsToTypes[searchPokemon] &&
+                                monPngsToTypes[searchPokemon][imgUrl] &&
+                                ('' + monPngsToTypes[searchPokemon][imgUrl][0]);
+                            searchTypeTwo = monPngsToTypes[searchPokemon] &&
+                                monPngsToTypes[searchPokemon][imgUrl] &&
+                                ('' + (monPngsToTypes[searchPokemon][imgUrl][1] || -1));
+                        } else {
+                            let searchPokemonIndex = dexData.indexOf('"'+searchPokemon+'"');
+                            searchTypeOne = dexData[searchPokemonIndex + 1];
+                            searchTypeTwo = dexData[searchPokemonIndex + 2];
+                        }
                         if ((searchTypeOne === value) || (searchTypeTwo === value)) {
                             typePokemonNames.push(searchPokemon);
                         }
