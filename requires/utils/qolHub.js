@@ -103,16 +103,20 @@ class QoLHub {
 
                         // Collect list of base names to make it easier down the line
                         const baseNames = dexUtilities.parseBaseNames($, virtualDocument, dexPageParser, allPagesHTML);
-                        // Collect list of egg pngs
-                        const eggPngs = dexUtilities.parseEggsPngsList($, virtualDocument, dexPageParser, allPagesHTML);
                         // Collect list of types
                         const types = dexUtilities.parseTypesList($, virtualDocument, dexPageParser, globals, allPagesHTML);
+                        // Collect list of types for each egg
+                        const eggPngs = dexUtilities.parseEggsPngsList($, virtualDocument, dexPageParser, allPagesHTML);
                         const eggPngsTypeMap = dexUtilities.buildEggPngsTypesMap(baseNames, eggPngs, types);
+                        // Collect list of types for each pokemon
+                        const monPngs = dexUtilities.parsePokemonNormalPngsList($, virtualDocument, dexPageParser, allPagesHTML);
+                        const monPngsTypeMap = dexUtilities.buildPokemonNormalPngsTypeMap(baseNames, monPngs, types);
 
                         localStorageManager.saveEvolveByLevelList(globals, parsedFamilies, dexIDs);
                         localStorageManager.saveEvolutionTreeDepths(globals, evolutionTreeDepthList);
                         localStorageManager.saveRegionalFormsList(globals, parsedFamilies, dexIDs, regionalFormMap);
                         localStorageManager.saveEggTypesMap(globals, eggPngsTypeMap);
+                        localStorageManager.savePokemonTypesMap(globals, monPngsTypeMap);
                         progressSpan.textContent = 'Complete!';
                     }).fail((error) => {
                         console.log(error);
