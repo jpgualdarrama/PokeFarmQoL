@@ -5,7 +5,8 @@ class Globals extends GlobalsBase {
         super();
         this.jQuery = jQuery;
         this.localStorageMgr = localStorageMgr;
-
+    }
+    async getDexData() {
         const errorSuppressorKey = 'QoLFetchErrorCount';
         const maxFetchErrorDisplays = 10;
         let errorSuppressorCount = this.localStorageMgr.getItem(errorSuppressorKey);
@@ -19,8 +20,7 @@ class Globals extends GlobalsBase {
         // load the dex from local storage if it exists
         if (!this.localStorageMgr.loadDexIntoGlobalsFromStorage(this)) {
             const obj = this;
-            // fetch the initial dex data from the /dex page
-            fetch('/dex')
+            return fetch('/dex')
                 .then(r => {
                     if (!r.ok) {
                         throw new Error(`Response was not ok. OK=${r.ok}, Status=${r.status}, Text=${r.statusText}`);
@@ -38,6 +38,7 @@ class Globals extends GlobalsBase {
                         obj.localStorageMgr.loadDexIntoGlobalsFromStorage(obj);
                         errorSuppressorCount = 0;
                         this.localStorageMgr.setItem(errorSuppressorKey, JSON.stringify(0));
+                        return obj.DEX_DATA;
                     } catch (error) {
                         if (errorSuppressorCount < maxFetchErrorDisplays) {
                             errorSuppressorCount++;
@@ -55,6 +56,8 @@ class Globals extends GlobalsBase {
                             `This message will be reported ${maxFetchErrorDisplays - errorSuppressorCount} times before being suppressed`);
                     }
                 });
+        } else {
+            return Promise.resolve(this.DEX_DATA);
         }
     }
 }
