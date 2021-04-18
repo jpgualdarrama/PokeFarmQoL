@@ -77,18 +77,6 @@ class ShelterPageBase extends Page {
     }
     setupHandlers(GLOBALS) {
         const obj = this;
-
-
-        // this.jQuery('[data-key=findNewEgg]').on('click', (async function () {
-        //     obj.settingsChange(this.getAttribute('data-key'),
-        //         obj.jQuery(this).val(),
-        //         obj.jQuery(this).parent().parent().attr('class'),
-        //         obj.jQuery(this).parent().attr('class'),
-        //         (this.hasAttribute('array-name') ? this.getAttribute('array-name') : ''));
-        //     await obj.customSearch(GLOBALS);
-        //     obj.saveSettings();
-        // }));
-
         this.jQuery(document).on('change', '#shelteroptionsqol input', (async function () { //shelter search
             obj.loadSettings();
             await obj.customSearch(GLOBALS);
