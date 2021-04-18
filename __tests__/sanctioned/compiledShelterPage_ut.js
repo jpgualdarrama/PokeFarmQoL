@@ -1,3 +1,5 @@
+// require('babel-core/register');
+require('babel-polyfill');
 const $ = require('../../__mocks__/jquery_files').jQuery;
 $.USERID = '';
 const key = `${$.USERID}.QoLShelter`;
@@ -7,6 +9,8 @@ const fs = require('fs');
 const path = require('path');
 const appRoot = require('app-root-path');
 const pfqol = require(appRoot + '/Poke-Farm-QoL.sanctioned.test.user');
+const waitFor = require('@testing-library/dom').waitFor;
+
 const oldWindowLocation = window.location;
 window.fetch = require('../../__mocks__/fetch').fetch;
 
@@ -29,65 +33,80 @@ beforeAll(() => {
     );
 });
 
-const verifyCheckbox = function(dataKey, localStorageKey, matchClass, matchCount) {
+const verifyCheckbox = async function (dataKey, localStorageKey, matchClass, matchCount) {
     $(`[data-key=${dataKey}]`).trigger('click');
-    expect($(`[data-key=${dataKey}]`).prop('checked')).toBe(true);
-    expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe(true);
-    expect($(`.${matchClass}`).length).toBe(matchCount);
+    await waitFor(() => {
+        expect($(`[data-key=${dataKey}]`).prop('checked')).toBe(true);
+        expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe(true);
+        expect($(`.${matchClass}`).length).toBe(matchCount);
+    });
+
     $(`[data-key=${dataKey}]`).trigger('click');
-    expect($(`.${matchClass}`).length).toBe(0);
-    expect($(`[data-key=${dataKey}]`).prop('checked')).toBe(false);
-    expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe(false);
+    await waitFor(() => {
+        expect($(`.${matchClass}`).length).toBe(0);
+        expect($(`[data-key=${dataKey}]`).prop('checked')).toBe(false);
+        expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe(false);
+    });
 };
 
-const verifyAddType = function(dataKey, localStorageKey, addButtonID, removeButtonID) {
+const verifyAddType = async function (dataKey, localStorageKey, addButtonID, removeButtonID) {
     $(`#${addButtonID}`).trigger('click');
-    // check that the correct changes were applied
-    expect($(`[data-key=${dataKey}]`).length).toBe(2);
-    expect($(`[id=${removeButtonID}]`).length).toBe(2);
-    expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe('');
-    // null because it was never set to anything
-    expect($(`[data-key=${dataKey}]`).eq(0).val()).toBe(null);
-    expect($(`[data-key=${dataKey}]`).eq(1).val()).toBe('none');
+    await waitFor(() => {
+        // check that the correct changes were applied
+        expect($(`[data-key=${dataKey}]`).length).toBe(2);
+        expect($(`[id=${removeButtonID}]`).length).toBe(2);
+        expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe('');
+        // null because it was never set to anything
+        expect($(`[data-key=${dataKey}]`).eq(0).val()).toBe(null);
+        expect($(`[data-key=${dataKey}]`).eq(1).val()).toBe('none');
+    });
 };
 
-const verifySelectingType = function(dataKey, localStorageKey, matchClass, typeToAdd, numMatches) {
+const verifySelectingType = async function (dataKey, localStorageKey, matchClass, typeToAdd, numMatches) {
     $(`[data-key=${dataKey}]`).eq(0).prop('selectedIndex', typeToAdd);
     $(`[data-key=${dataKey}]`).eq(0).trigger('input');
-    expect($(`.${matchClass}`).length).toBe(numMatches);
-    expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe(`${typeToAdd-1}`);
+    await waitFor(() => {
+        expect($(`.${matchClass}`).length).toBe(numMatches);
+        expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe(`${typeToAdd - 1}`);
+    });
 };
 
-const verifyRemoveType = function(dataKey, localStorageKey, removeButtonID, matchClass, expectedNumber) {
+const verifyRemoveType = async function (dataKey, localStorageKey, removeButtonID, matchClass, expectedNumber) {
     $(`#${removeButtonID}`).eq(0).trigger('click');
-    expect($(`[data-key=${dataKey}]`).length).toBe(expectedNumber);
-    expect($(`[id=${removeButtonID}]`).length).toBe(expectedNumber);
-    expect($(`.${matchClass}`).length).toBe(0);
-    expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe('');
+    await waitFor(() => {
+        expect($(`[data-key=${dataKey}]`).length).toBe(expectedNumber);
+        expect($(`[id=${removeButtonID}]`).length).toBe(expectedNumber);
+        expect($(`.${matchClass}`).length).toBe(0);
+        expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe('');
+    });
 };
 
-const verifyAddTextField = function(dataKey, localStorageKey, addButtonID, removeButtonID) {
+const verifyAddTextField = async function (dataKey, localStorageKey, addButtonID, removeButtonID) {
     $(`#${addButtonID}`).trigger('click');
-    // check that the correct changes were applied
-    expect($(`[data-key=${dataKey}]`).length).toBe(2);
-    expect($(`[id=${removeButtonID}]`).length).toBe(2);
-    expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe('');
-    // null because it was never set to anything
-    expect($(`[data-key=${dataKey}]`).eq(0).val()).toBe('');
-    expect($(`[data-key=${dataKey}]`).eq(1).val()).toBe('');
+    await waitFor(() => {
+        // check that the correct changes were applied
+        expect($(`[data-key=${dataKey}]`).length).toBe(2);
+        expect($(`[id=${removeButtonID}]`).length).toBe(2);
+        expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe('');
+        // null because it was never set to anything
+        expect($(`[data-key=${dataKey}]`).eq(0).val()).toBe('');
+        expect($(`[data-key=${dataKey}]`).eq(1).val()).toBe('');
+    });
 };
 
-const verifyRemoveTextField = function(dataKey, localStorageKey, removeButtonID, expectedNumber, expectedValue) {
+const verifyRemoveTextField = async function (dataKey, localStorageKey, removeButtonID, expectedNumber, expectedValue) {
     // test removing custom fields
     $(`#${removeButtonID}`).eq(0).trigger('click');
-    // check that the correct changes were applied
-    expect($(`[data-key=${dataKey}]`).length).toBe(expectedNumber);
-    expect($(`[id=${removeButtonID}]`).length).toBe(expectedNumber);
-    expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe(expectedValue);
+    await waitFor(() => {
+        // check that the correct changes were applied
+        expect($(`[data-key=${dataKey}]`).length).toBe(expectedNumber);
+        expect($(`[id=${removeButtonID}]`).length).toBe(expectedNumber);
+        expect(JSON.parse(localStorage.getItem(localStorageKey))[dataKey]).toBe(expectedValue);
+    });
 };
 
 describe('Test Shelter page', () => {
-    test('Test Search controls on Shelter Page', () => {
+    test('Test Search controls on Shelter Page', async () => {
         ////////////////////////////////////////
         // remove handlers that linger from the previous test
         $(document).off('click', '#addShelterTypeList');
@@ -124,27 +143,27 @@ describe('Test Shelter page', () => {
         document.documentElement.innerHTML = innerHTML;
 
         localStorage.setItem(key,
-            '{"findCustom":"",'+
-               '"findType":"",'+
-               '"findTypeEgg":false,'+
-               '"findTypePokemon":false,'+
-               '"findNewEgg":false,'+
-               '"findNewPokemon":false,'+
-               '"findShiny":false,'+
-               '"findAlbino":false,'+
-               '"findMelanistic":false,'+
-               '"findPrehistoric":false,'+
-               '"findDelta":false,'+
-               '"findMega":false,'+
-               '"findStarter":false,'+
-               '"findCustomSprite":false,'+
-               '"findMale":false,'+
-               '"findFemale":false,'+
-               '"findNoGender":false,'+
-               '"customEgg":false,'+
-               '"customPokemon":false,'+
-               '"customPng":false,'+
-               '"shelterGrid":false}');
+            '{"findCustom":"",' +
+            '"findType":"",' +
+            '"findTypeEgg":false,' +
+            '"findTypePokemon":false,' +
+            '"findNewEgg":false,' +
+            '"findNewPokemon":false,' +
+            '"findShiny":false,' +
+            '"findAlbino":false,' +
+            '"findMelanistic":false,' +
+            '"findPrehistoric":false,' +
+            '"findDelta":false,' +
+            '"findMega":false,' +
+            '"findStarter":false,' +
+            '"findCustomSprite":false,' +
+            '"findMale":false,' +
+            '"findFemale":false,' +
+            '"findNoGender":false,' +
+            '"customEgg":false,' +
+            '"customPokemon":false,' +
+            '"customPng":false,' +
+            '"shelterGrid":false}');
 
         new pfqol.pfqol($);
         ////////////////////////////////////////
@@ -177,14 +196,14 @@ describe('Test Shelter page', () => {
         ];
 
         // check that all checkboxes were setup correctly
-        for(let i = 0; i < checkboxDataKeys.length; i++) {
+        for (let i = 0; i < checkboxDataKeys.length; i++) {
             expect($(`[data-key=${checkboxDataKeys[i]}]`).length).toBe(1);
             expect($(`[data-key=${checkboxDataKeys[i]}]`).prop('checked')).toBe(false);
             expect(loadedSettings[checkboxDataKeys[i]]).toBe(false);
         }
 
         // check that list search fields were setup correctly
-        for(let i = 0; i < listSearchFields.length; i++) {
+        for (let i = 0; i < listSearchFields.length; i++) {
             expect($('input').filter(`#${listSearchFields[i].addButtonID}`).length).toBe(1);
             expect($(`[data-key=${listSearchFields[i].dataKey}][array-name=${listSearchFields[i].listName}]`).length).toBe(1);
             expect($('input').filter(`#${listSearchFields[i].removeButtonID}`).length).toBe(1);
@@ -193,14 +212,14 @@ describe('Test Shelter page', () => {
 
         ////////////////////////////////////////
         // verify that all checkboxes work
-        for(let i = 0; i < checkboxDataKeys.length; i++) {
+        for (let i = 0; i < checkboxDataKeys.length; i++) {
             verifyCheckbox(checkboxDataKeys[i], key, 'shelterfoundme', QUANTITIES[checkboxDataKeys[i]]);
         }
         ////////////////////////////////////////
 
         ////////////////////////////////////////
         // test adding type
-        verifyAddType( 'findType', key, 'addShelterTypeList', 'removeShelterTypeList');
+        verifyAddType('findType', key, 'addShelterTypeList', 'removeShelterTypeList');
         ////////////////////////////////////////
 
         ////////////////////////////////////////
@@ -238,27 +257,43 @@ describe('Test Shelter page', () => {
         const NAME_TO_FIND = 'Bulbasaur';
         $('[data-key=findCustom]').eq(0).val(NAME_TO_FIND);
         $('[data-key=findCustom]').eq(0).trigger('input');
-        expect($('.shelterfoundme').length).toBe(3); // just text
-        expect(JSON.parse(localStorage.getItem(key)).findCustom).toBe(NAME_TO_FIND);
+        await waitFor(() => {
+            expect($('.shelterfoundme').length).toBe(3); // just text
+            expect(JSON.parse(localStorage.getItem(key)).findCustom).toBe(NAME_TO_FIND);
+        });
         // check buttons work individually
         $('[data-key=customEgg]').trigger('click'); // disable
-        expect($('.shelterfoundme').length).toBe(2);
+        await waitFor(() => {
+            expect($('.shelterfoundme').length).toBe(2);
+        });
         $('[data-key=customPokemon]').trigger('click'); // disable
-        expect($('.shelterfoundme').length).toBe(0);
+        await waitFor(() => {
+            expect($('.shelterfoundme').length).toBe(0);
+        });
         $('[data-key=customPokemon]').trigger('click'); // enable
         $('[data-key=findMale]').trigger('click'); // disable
-        expect($('.shelterfoundme').length).toBe(1); // just females
+        await waitFor(() => {
+            expect($('.shelterfoundme').length).toBe(1); // just females
+        });
         $('[data-key=findFemale]').trigger('click'); // disable
-        expect($('.shelterfoundme').length).toBe(0);
+        await waitFor(() => {
+            expect($('.shelterfoundme').length).toBe(0);
+        });
         $('[data-key=findMale]').trigger('click'); // enable
-        expect($('.shelterfoundme').length).toBe(1); // just males
+        await waitFor(() => {
+            expect($('.shelterfoundme').length).toBe(1); // just males
+        });
         $('[data-key=findMale]').trigger('click'); // disable
         // check genderless
         $('[data-key=findCustom]').eq(0).val('Pokémon');
         $('[data-key=findCustom]').eq(0).trigger('input');
-        expect($('.shelterfoundme').length).toBe(2);
+        await waitFor(() => {
+            expect($('.shelterfoundme').length).toBe(2);
+        });
         $('[data-key=findNoGender]').trigger('click'); // disable
-        expect($('.shelterfoundme').length).toBe(0);
+        await waitFor(() => {
+            expect($('.shelterfoundme').length).toBe(0);
+        });
         ////////////////////////////////////////
 
         ////////////////////////////////////////
@@ -267,7 +302,7 @@ describe('Test Shelter page', () => {
         ////////////////////////////////////////
     });
 
-    test('Test Sort controls on Shelter Page', () => {
+    test('Test Sort controls on Shelter Page', async () => {
         ////////////////////////////////////////
         // setup
         const htmlpath = path.join(__dirname, '../data/', 'shelter.html');
@@ -277,52 +312,58 @@ describe('Test Shelter page', () => {
         document.documentElement.innerHTML = innerHTML;
 
         localStorage.setItem(key,
-            '{"findCustom":"",'+
-               '"findType":"",'+
-               '"findTypeEgg":false,'+
-               '"findTypePokemon":false,'+
-               '"findNewEgg":false,'+
-               '"findNewPokemon":false,'+
-               '"findShiny":false,'+
-               '"findAlbino":false,'+
-               '"findMelanistic":false,'+
-               '"findPrehistoric":false,'+
-               '"findDelta":false,'+
-               '"findMega":false,'+
-               '"findStarter":false,'+
-               '"findCustomSprite":false,'+
-               '"findMale":false,'+
-               '"findFemale":false,'+
-               '"findNoGender":false,'+
-               '"customEgg":false,'+
-               '"customPokemon":false,'+
-               '"customPng":false,'+
-               '"shelterGrid":false}');
+            '{"findCustom":"",' +
+            '"findType":"",' +
+            '"findTypeEgg":false,' +
+            '"findTypePokemon":false,' +
+            '"findNewEgg":false,' +
+            '"findNewPokemon":false,' +
+            '"findShiny":false,' +
+            '"findAlbino":false,' +
+            '"findMelanistic":false,' +
+            '"findPrehistoric":false,' +
+            '"findDelta":false,' +
+            '"findMega":false,' +
+            '"findStarter":false,' +
+            '"findCustomSprite":false,' +
+            '"findMale":false,' +
+            '"findFemale":false,' +
+            '"findNoGender":false,' +
+            '"customEgg":false,' +
+            '"customPokemon":false,' +
+            '"customPng":false,' +
+            '"shelterGrid":false}');
 
         new pfqol.pfqol($);
         ////////////////////////////////////////
 
         ////////////////////////////////////////
         // check that data is setup correctly
-        expect($('[data-key=shelterGrid]').length).toBe(1);
-        expect($('[data-key=shelterGrid]').prop('checked')).toBe(false);
-        expect(JSON.parse(localStorage.getItem(key)).shelterGrid).toBe(false);
+        await waitFor(() => {
+            expect($('[data-key=shelterGrid]').length).toBe(1);
+            expect($('[data-key=shelterGrid]').prop('checked')).toBe(false);
+            expect(JSON.parse(localStorage.getItem(key)).shelterGrid).toBe(false);
+        });
         ////////////////////////////////////////
 
         ////////////////////////////////////////
         // enable
         $('[data-key=shelterGrid]').trigger('click');
-        expect($('#shelterarea').hasClass('qolshelterareagrid')).toBe(true);
-        expect($('[data-key=shelterGrid]').prop('checked')).toBe(true);
-        expect(JSON.parse(localStorage.getItem(key)).shelterGrid).toBe(true);
+        await waitFor(() => {
+            expect($('#shelterarea').hasClass('qolshelterareagrid')).toBe(true);
+            expect($('[data-key=shelterGrid]').prop('checked')).toBe(true);
+            expect(JSON.parse(localStorage.getItem(key)).shelterGrid).toBe(true);
+        });
         ////////////////////////////////////////
 
         ////////////////////////////////////////
         // disable
         $('[data-key=shelterGrid]').trigger('click');
-        expect($('#shelterarea').hasClass('qolshelterareagrid')).toBe(false);
-        expect($('[data-key=shelterGrid]').prop('checked')).toBe(false);
-        expect(JSON.parse(localStorage.getItem(key)).shelterGrid).toBe(false);
+        await waitFor(() => {
+            expect($('#shelterarea').hasClass('qolshelterareagrid')).toBe(false);
+            expect($('[data-key=shelterGrid]').prop('checked')).toBe(false);
+            expect(JSON.parse(localStorage.getItem(key)).shelterGrid).toBe(false);
+        });
         ////////////////////////////////////////
     });
 });
