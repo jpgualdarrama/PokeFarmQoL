@@ -93,9 +93,9 @@ class FarmPageBase extends Page {
     easyEvolveNormalList() {
         this.clearSortedEvolveLists();
     }
-    easyEvolveTypeList(GLOBALS) {
+    async easyEvolveTypeList(GLOBALS) {
         const obj = this;
-        const dexData = GLOBALS.DEX_DATA;
+        const dexData = await GLOBALS.getDexData();
 
         this.clearSortedEvolveLists();
 
@@ -355,9 +355,9 @@ class FarmPageBase extends Page {
         obj.jQuery('.qolChangeLogContent').css('background-color', '' + typeListBackground + '');
         obj.jQuery('.qolChangeLogContent').css('color', '' + typeListColor + '');
     }
-    easyEvolveNewList(GLOBALS) {
+    async easyEvolveNewList(GLOBALS) {
         const obj = this;
-        const dexData = GLOBALS.DEX_DATA;
+        const dexData = await GLOBALS.getDexData();
 
         this.clearSortedEvolveLists();
 

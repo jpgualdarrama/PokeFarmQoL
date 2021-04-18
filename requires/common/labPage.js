@@ -130,8 +130,8 @@ class LabPageBase extends Page {
             this.jQuery('.' + i + '').next().removeClass().addClass('' + rightDiv + '');
         }
     }
-    getTypesForEgg(searchPokemon) {
-        const data = this.globals.DEX_DATA;
+    async getTypesForEgg(searchPokemon) {
+        const data = await this.globals.getDexData();
         const searchPokemonIndex = data.indexOf('"' + searchPokemon + '"');
         return [data[searchPokemonIndex + 1], data[searchPokemonIndex + 2]];
     }

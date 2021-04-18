@@ -30,8 +30,8 @@ class ShelterPageBase extends Page {
         const obj = this;
         this.observer = new MutationObserver(function (mutations) {
             // eslint-disable-next-line no-unused-vars
-            mutations.forEach(function (mutation) {
-                obj.customSearch(GLOBALS);
+            mutations.forEach(async function (mutation) {
+                await obj.customSearch(GLOBALS);
             });
         });
 
@@ -77,54 +77,67 @@ class ShelterPageBase extends Page {
     }
     setupHandlers(GLOBALS) {
         const obj = this;
-        this.jQuery(document).on('change', '#shelteroptionsqol input', (function () { //shelter search
+
+
+        // this.jQuery('[data-key=findNewEgg]').on('click', (async function () {
+        //     obj.settingsChange(this.getAttribute('data-key'),
+        //         obj.jQuery(this).val(),
+        //         obj.jQuery(this).parent().parent().attr('class'),
+        //         obj.jQuery(this).parent().attr('class'),
+        //         (this.hasAttribute('array-name') ? this.getAttribute('array-name') : ''));
+        //     await obj.customSearch(GLOBALS);
+        //     obj.saveSettings();
+        // }));
+
+        this.jQuery(document).on('change', '#shelteroptionsqol input', (async function () { //shelter search
             obj.loadSettings();
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
             obj.saveSettings();
         }));
 
-        this.jQuery(document).on('change', '.qolsetting', (function () {
+        this.jQuery(document).on('change', '.qolsetting', (async function () {
             obj.loadSettings();
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
             obj.saveSettings();
         }));
 
-        this.jQuery(document).on('input', '.qolsetting', (function () { //Changes QoL settings
+        this.jQuery(document).on('input', '.qolsetting', (async function () { //Changes QoL settings
             obj.settingsChange(this.getAttribute('data-key'),
                 obj.jQuery(this).val(),
                 obj.jQuery(this).parent().parent().attr('class'),
                 obj.jQuery(this).parent().attr('class'),
                 (this.hasAttribute('array-name') ? this.getAttribute('array-name') : ''));
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
             obj.saveSettings();
         }));
 
-        this.jQuery('.customSearchOnClick').on('click', (function () {
+        this.jQuery('.customSearchOnClick').on('click', (async function () {
             obj.loadSettings();
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
             obj.saveSettings();
         }));
 
-        this.jQuery(document).on('click', '#addShelterTextfield', (function () { //add shelter text field
+        this.jQuery(document).on('click', '#addShelterTextfield', (async function () { //add shelter text field
             obj.addTextField();
+            await obj.customSearch(GLOBALS);
             obj.saveSettings();
         }));
 
-        this.jQuery(document).on('click', '#removeShelterTextfield', (function () { //remove shelter text field
+        this.jQuery(document).on('click', '#removeShelterTextfield', (async function () { //remove shelter text field
             obj.removeTextField(this, obj.jQuery(this).parent().find('input').val());
             obj.saveSettings();
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
         }));
 
-        this.jQuery(document).on('click', '#addShelterTypeList', (function () { //add shelter type list
+        this.jQuery(document).on('click', '#addShelterTypeList', (async function () { //add shelter type list
             obj.addTypeList(GLOBALS);
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
         }));
 
-        this.jQuery(document).on('click', '#removeShelterTypeList', (function () { //remove shelter type list
+        this.jQuery(document).on('click', '#removeShelterTypeList', (async function () { //remove shelter type list
             obj.removeTypeList(this, obj.jQuery(this).parent().find('select').val());
             obj.saveSettings();
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
         }));
 
         this.jQuery(window).on('keyup.qol_shelter_shortcuts', function (a) {
@@ -228,11 +241,11 @@ class ShelterPageBase extends Page {
             this.insertShelterFoundDiv(selected.length, imgResult, imgFitResult);
         }
     }
-    customSearch(GLOBALS) {
+    async customSearch(GLOBALS) {
         const obj = this;
         const SEARCH_DATA = GLOBALS.SHELTER_SEARCH_DATA;
 
-        const dexData = GLOBALS.DEX_DATA;
+        const dexData = await GLOBALS.getDexData();
         // search whatever you want to find in the shelter & grid
 
         //sort in grid
