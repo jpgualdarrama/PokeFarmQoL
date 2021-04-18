@@ -9,4 +9,7 @@ class Globals extends GlobalsBase {
         this.jQuery = jQuery;
         this.localStorageMgr = localStorageMgr;
     }
+    getDexData() {
+        return Promise.resolve(this.DEX_DATA);
+    }
 }
