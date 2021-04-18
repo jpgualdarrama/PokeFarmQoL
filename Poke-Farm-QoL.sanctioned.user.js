@@ -1656,7 +1656,8 @@ class Globals extends GlobalsBase {
         super();
         this.jQuery = jQuery;
         this.localStorageMgr = localStorageMgr;
-
+    }
+    async getDexData() {
         const errorSuppressorKey = 'QoLFetchErrorCount';
         const maxFetchErrorDisplays = 10;
         let errorSuppressorCount = this.localStorageMgr.getItem(errorSuppressorKey);
@@ -1670,8 +1671,7 @@ class Globals extends GlobalsBase {
         // load the dex from local storage if it exists
         if (!this.localStorageMgr.loadDexIntoGlobalsFromStorage(this)) {
             const obj = this;
-            // fetch the initial dex data from the /dex page
-            fetch('/dex')
+            return fetch('/dex')
                 .then(r => {
                     if (!r.ok) {
                         throw new Error(`Response was not ok. OK=${r.ok}, Status=${r.status}, Text=${r.statusText}`);
@@ -1684,11 +1684,12 @@ class Globals extends GlobalsBase {
                         const doc = parser.parseFromString(html, 'text/html');
                         const script = doc.getElementById('dexdata');
                         const json = script.textContent;
-                        obj.DEX_DATA = json;
+                        obj.DEX_DATA = json.split(',');
                         obj.localStorageMgr.updateLocalStorageDex(obj.jQuery, document, undefined, obj);
                         obj.localStorageMgr.loadDexIntoGlobalsFromStorage(obj);
                         errorSuppressorCount = 0;
                         this.localStorageMgr.setItem(errorSuppressorKey, JSON.stringify(0));
+                        return obj.DEX_DATA;
                     } catch (error) {
                         if (errorSuppressorCount < maxFetchErrorDisplays) {
                             errorSuppressorCount++;
@@ -1706,9 +1707,12 @@ class Globals extends GlobalsBase {
                             `This message will be reported ${maxFetchErrorDisplays - errorSuppressorCount} times before being suppressed`);
                     }
                 });
+        } else {
+            return Promise.resolve(this.DEX_DATA);
         }
     }
 }
+
 /* globals Helpers */
 
 // eslint-disable-next-line no-unused-vars
@@ -1788,7 +1792,7 @@ class LocalStorageManagerBase {
 
         globals.DEX_UPDATE_DATE = dateAndDex[0];
         const dex = dateAndDex.slice(1);
-        globals.DEX_DATA = dex[0].split(',');
+        globals.DEX_DATA = dex;
         return true;
     }
 
@@ -1804,6 +1808,7 @@ class LocalStorageManagerBase {
         $('.qolDate', document).val(dateString);
     }
 }
+
 /* globals LocalStorageManagerBase */
 // eslint-disable-next-line no-unused-vars
 class LocalStorageManager extends LocalStorageManagerBase {
@@ -2136,8 +2141,8 @@ class ShelterPageBase extends Page {
         const obj = this;
         this.observer = new MutationObserver(function (mutations) {
             // eslint-disable-next-line no-unused-vars
-            mutations.forEach(function (mutation) {
-                obj.customSearch(GLOBALS);
+            mutations.forEach(async function (mutation) {
+                await obj.customSearch(GLOBALS);
             });
         });
 
@@ -2183,54 +2188,55 @@ class ShelterPageBase extends Page {
     }
     setupHandlers(GLOBALS) {
         const obj = this;
-        this.jQuery(document).on('change', '#shelteroptionsqol input', (function () { //shelter search
+        this.jQuery(document).on('change', '#shelteroptionsqol input', (async function () { //shelter search
             obj.loadSettings();
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
             obj.saveSettings();
         }));
 
-        this.jQuery(document).on('change', '.qolsetting', (function () {
+        this.jQuery(document).on('change', '.qolsetting', (async function () {
             obj.loadSettings();
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
             obj.saveSettings();
         }));
 
-        this.jQuery(document).on('input', '.qolsetting', (function () { //Changes QoL settings
+        this.jQuery(document).on('input', '.qolsetting', (async function () { //Changes QoL settings
             obj.settingsChange(this.getAttribute('data-key'),
                 obj.jQuery(this).val(),
                 obj.jQuery(this).parent().parent().attr('class'),
                 obj.jQuery(this).parent().attr('class'),
                 (this.hasAttribute('array-name') ? this.getAttribute('array-name') : ''));
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
             obj.saveSettings();
         }));
 
-        this.jQuery('.customSearchOnClick').on('click', (function () {
+        this.jQuery('.customSearchOnClick').on('click', (async function () {
             obj.loadSettings();
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
             obj.saveSettings();
         }));
 
-        this.jQuery(document).on('click', '#addShelterTextfield', (function () { //add shelter text field
+        this.jQuery(document).on('click', '#addShelterTextfield', (async function () { //add shelter text field
             obj.addTextField();
+            await obj.customSearch(GLOBALS);
             obj.saveSettings();
         }));
 
-        this.jQuery(document).on('click', '#removeShelterTextfield', (function () { //remove shelter text field
+        this.jQuery(document).on('click', '#removeShelterTextfield', (async function () { //remove shelter text field
             obj.removeTextField(this, obj.jQuery(this).parent().find('input').val());
             obj.saveSettings();
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
         }));
 
-        this.jQuery(document).on('click', '#addShelterTypeList', (function () { //add shelter type list
+        this.jQuery(document).on('click', '#addShelterTypeList', (async function () { //add shelter type list
             obj.addTypeList(GLOBALS);
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
         }));
 
-        this.jQuery(document).on('click', '#removeShelterTypeList', (function () { //remove shelter type list
+        this.jQuery(document).on('click', '#removeShelterTypeList', (async function () { //remove shelter type list
             obj.removeTypeList(this, obj.jQuery(this).parent().find('select').val());
             obj.saveSettings();
-            obj.customSearch(GLOBALS);
+            await obj.customSearch(GLOBALS);
         }));
 
         this.jQuery(window).on('keyup.qol_shelter_shortcuts', function (a) {
@@ -2334,11 +2340,11 @@ class ShelterPageBase extends Page {
             this.insertShelterFoundDiv(selected.length, imgResult, imgFitResult);
         }
     }
-    customSearch(GLOBALS) {
+    async customSearch(GLOBALS) {
         const obj = this;
         const SEARCH_DATA = GLOBALS.SHELTER_SEARCH_DATA;
 
-        const dexData = GLOBALS.DEX_DATA;
+        const dexData = await GLOBALS.getDexData();
         // search whatever you want to find in the shelter & grid
 
         //sort in grid
@@ -3836,8 +3842,8 @@ class LabPageBase extends Page {
             this.jQuery('.' + i + '').next().removeClass().addClass('' + rightDiv + '');
         }
     }
-    getTypesForEgg(searchPokemon) {
-        const data = this.globals.DEX_DATA;
+    async getTypesForEgg(searchPokemon) {
+        const data = await this.globals.getDexData();
         const searchPokemonIndex = data.indexOf('"' + searchPokemon + '"');
         return [data[searchPokemonIndex + 1], data[searchPokemonIndex + 2]];
     }
@@ -4322,9 +4328,9 @@ class FarmPageBase extends Page {
     easyEvolveNormalList() {
         this.clearSortedEvolveLists();
     }
-    easyEvolveTypeList(GLOBALS) {
+    async easyEvolveTypeList(GLOBALS) {
         const obj = this;
-        const dexData = GLOBALS.DEX_DATA;
+        const dexData = await GLOBALS.getDexData();
 
         this.clearSortedEvolveLists();
 
@@ -4584,9 +4590,9 @@ class FarmPageBase extends Page {
         obj.jQuery('.qolChangeLogContent').css('background-color', '' + typeListBackground + '');
         obj.jQuery('.qolChangeLogContent').css('color', '' + typeListColor + '');
     }
-    easyEvolveNewList(GLOBALS) {
+    async easyEvolveNewList(GLOBALS) {
         const obj = this;
-        const dexData = GLOBALS.DEX_DATA;
+        const dexData = await GLOBALS.getDexData();
 
         this.clearSortedEvolveLists();
 
